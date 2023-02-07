@@ -1,0 +1,25 @@
+export type AttributesObj = {
+  ANZ_LOC: Number;
+  Address: { HouseNumber: String; Street: String; City: String };
+  EIG_KL_PV: Number;
+  EIG_KL_ST: Number;
+  FOLIE: String;
+  GMDE: String;
+  HNR: String;
+  H_First_Max: Number;
+  H_First_Min: Number;
+  H_Trauf_Max: Number;
+  H_Trauf_Min: Number;
+  KREIS: String;
+  Kachel: String;
+  LAND: String;
+  LFD: String;
+  OAR: String;
+  RBEZ: String;
+  STR: String;
+  TexVersion: Number;
+  creationDate: String;
+  "externalReference externalObjectName": String;
+  function: String;
+  measuredHeight: Number;
+};
