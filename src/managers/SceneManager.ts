@@ -6,24 +6,23 @@ import {
   CesiumTerrainProvider,
   ScreenSpaceEventType,
   Cartesian2,
+  PostProcessStageLibrary,
+  Color,
+  defined,
+  PostProcessStage,
 } from "cesium";
 
 class SceneManager {
-  public viewer: Viewer;
-  sidebarClosed: boolean = true;
-  clickedObjectAttr: any;
+  private viewer: Viewer;
+  private silhouetteGreen: PostProcessStage;
 
-  callbackFn: any;
-
-  constructor(setCallback: (attributes: any) => void) {
-    this.callbackFn = setCallback;
+  constructor(setActiveObjectCb: Function, clearActiveObjectCb: Function) {
     this.viewer = new Viewer("cesiumContainer", {
       terrainProvider: new CesiumTerrainProvider({
         url: "https://www.virtualcitymap.de/datasource-data/globalterrain_5_9",
         requestVertexNormals: true,
       }),
       baseLayerPicker: false,
-      // navigationHelpButton: false,
       sceneModePicker: false,
       projectionPicker: false,
       homeButton: false,
@@ -31,36 +30,34 @@ class SceneManager {
       animation: false,
       timeline: false,
       fullscreenButton: false,
-      // infoBox: false,
     });
 
-    this.viewer.selectedEntityChanged.addEventListener((selectedEntity) => {
-      console.log("selectedEntity", selectedEntity);
-    });
+    /* Highlight clicked Object setup */
+    this.silhouetteGreen = PostProcessStageLibrary.createEdgeDetectionStage();
+    this.silhouetteGreen.uniforms.color = Color.LIME;
+    this.silhouetteGreen.uniforms.length = 0.1;
+    this.clearHighlight();
 
+    this.viewer.scene.postProcessStages.add(
+      PostProcessStageLibrary.createSilhouetteStage([this.silhouetteGreen])
+    );
+
+    /**
+     * Override default InputAction for Left-Click
+     * Also avoids opening default Infobox
+     * */
     this.viewer.screenSpaceEventHandler.setInputAction(
       (movement: { position: Cartesian2 }) => {
-        this.clickedObjectAttr = null;
-        this.sidebarClosed = true;
+        this.clearHighlight();
 
-        this.callbackFn(undefined);
+        const clickedEntity = this.viewer.scene.pick(movement.position);
+        if (defined(clickedEntity)) {
+          this.silhouetteGreen.selected = [clickedEntity];
 
-        console.log("clicked cleared:", this.clickedObjectAttr);
-
-        const pickedFeature = this.viewer.scene.pick(movement.position);
-
-        if (pickedFeature) {
-          console.log("clicked:", pickedFeature.getProperty("attributes"));
-          console.log("obj:", pickedFeature);
-
-          this.clickedObjectAttr = pickedFeature.getProperty("attributes");
-          this.sidebarClosed = false;
-          this.callbackFn(this.clickedObjectAttr);
-
-          // TODO: set infobox state/content
+          const attr = clickedEntity.getProperty("attributes");
+          setActiveObjectCb(attr);
         } else {
-          console.log("nothing hit");
-          // TODO: clear infobox
+          clearActiveObjectCb();
         }
       },
       ScreenSpaceEventType.LEFT_CLICK
@@ -85,6 +82,10 @@ class SceneManager {
       });
 
     const handler = new ScreenSpaceEventHandler(this.viewer.scene.canvas);
+  }
+
+  public clearHighlight() {
+    this.silhouetteGreen.selected = [];
   }
 
   public destroy(): void {

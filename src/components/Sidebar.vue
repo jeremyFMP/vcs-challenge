@@ -1,7 +1,4 @@
 <script lang="ts">
-import { defineComponent } from "vue";
-import { AttributesObj } from "../types";
-
 export default {
   props: {
     isClosed: {
@@ -12,32 +9,25 @@ export default {
     onCloseCb: { type: Function },
   },
 
-  data(): {} {
-    return {};
-  },
   methods: {
     handleClose() {
       if (this.onCloseCb) {
-        this.onCloseCb(undefined);
+        this.onCloseCb();
       }
     },
   },
-  mounted() {},
-  beforeDestroy() {},
 };
 </script>
 
 <template>
   <div class="sidebar" :class="{ closed: isClosed }">
     <div class="header">
-      <h2>Info Attributes</h2>
+      <h2>Objekt Attribute</h2>
       <button @click="handleClose">x</button>
     </div>
 
     <div class="attributes" v-if="!isClosed">
-      <!-- TODO: refactor important attributes display -->
-      <!-- externalReference externalObjectName -->
-      <!-- measuredHeight -->
+      <!-- TODO: refactor important attributes display to generate child compenents by type and chosen attribute list -->
       <div
         v-if="
           attributes?.['externalReference externalObjectName'] !== undefined
@@ -45,7 +35,15 @@ export default {
         class="refId mb-4"
       >
         <h3>ExternalReference ExternalObjectName:</h3>
-        <span>{{ attributes["externalReference externalObjectName"] }} </span>
+        <span>{{ attributes["externalReference externalObjectName"] }}</span>
+      </div>
+
+      <div
+        v-if="attributes?.['measuredHeight'] !== undefined"
+        class="measured-height mb-4"
+      >
+        <h3>Gemessene Höhe:</h3>
+        <span>{{ attributes["measuredHeight"] }}</span>
       </div>
 
       <div v-if="attributes?.Address" class="address mb-4">
@@ -55,9 +53,10 @@ export default {
             >{{ attributes?.Address.Street }}
             {{ attributes?.Address.HouseNumber }}</span
           >
-          <span>{{ attributes?.Address.City }} </span>
+          <span>{{ attributes?.Address.City }}</span>
         </div>
       </div>
+
       <hr />
       <h3>Zusätzliche Attribute:</h3>
       <div class="misc-data">
@@ -69,6 +68,7 @@ export default {
         </ul>
       </div>
     </div>
+
     <div v-else>Klicke ein Gebäude</div>
   </div>
 </template>
@@ -114,6 +114,7 @@ hr
       display: flex
       line-height: 100%
       justify-content: center
+      align-items: center
       height: 40px
       width: 40px
       border: 0
@@ -126,8 +127,6 @@ hr
       margin-bottom: 5px
       margin-top: 0
       // text-transform: uppercase
-
-.sidebar
   .address
     .data
       display: flex
